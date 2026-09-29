@@ -1,0 +1,13 @@
+! Disturbance load for the 1000 MW power-imbalance case, at the bus the upstream
+! script perturbs (idis = 2178, Iberian peninsula, 380 kV).
+! Pure constant impedance (alpha = beta = 2) and no frequency sensitivity. The step
+! applies P and Q together at the load power factor of 0.99 leading, which every
+! one of the 3782 loaded buses in this system shares exactly (Q/P = -0.142492).
+! NOTE the upstream MATLAB model steps P alone: it adds a pure conductance
+! deltaP/(Sb*Vm^2) to the diagonal of the augmented admittance matrix, so its
+! reactive injection does not change. Comparisons against that reference are
+! therefore not like for like unless the Q step is removed.
+! It starts at zero power and is stepped by the .dst, so the base operating
+! point is untouched.
+!        name      bus     FP FQ  P   Q   DP A1 al1 A2 al2 al3 DQ B1 be1 B2 be2 be3
+INJEC LOAD DIST2178 ES2178 0. 0. 0.  0.  0. 1. 2.  0. 0.  0.  0. 1. 2.  0. 0.  0. ;

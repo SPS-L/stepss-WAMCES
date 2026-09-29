@@ -1,0 +1,19 @@
+# WAMCES solver settings.
+# $OMEGA_REF COI is required for the PMU model's dwref/thref observables, and
+# matches the MATLAB model, whose PMU chain measures against a moving DQ frame.
+# The full RAMSES licence is required: this network has 3809 buses and free
+# builds refuse anything above 1000. Keep the key in license.dat, which is
+# gitignored, and add it as an extra data file. Never paste it here.
+
+$NEWTON_TOLER 0.0001 0.0001 0.0001 ;
+$FIN_DIFFER 0.00001 0.00001        ;
+$PLOT_STEP  0.01                   ;
+$DISP_PROF T                       ;
+$NB_THREADS 1                      ;
+$T_LOAD_REST 0.005                 ;
+$FULL_UPDATE F                     ;
+$SKIP_CONV T                       ;
+$LATENCY 20. F                     ;
+$SCHEME DE                         ;
+$OMEGA_REF COI                     ;
+$SPARSE_SOLVER KLU                 ;

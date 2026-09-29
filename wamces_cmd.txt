@@ -1,0 +1,16 @@
+wamces_lf.dat
+wamces_lfres.dat
+wamces_dyn.dat
+wamces_settings.dat
+license.dat
+
+init.trace
+wamces_flat.dst
+wamces_flat.trj
+wamces_obs.dat
+cont.trace
+disc.trace
+
+
+
+
