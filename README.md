@@ -1,5 +1,7 @@
 # WAMCES: European Power System for Wide-Area Monitoring and Control
 
+> **Source.** The WAMCES model is the work of R. Musca, M. G. Ippolito and E. Riva Sanseverino (University of Palermo). It is described in R. Musca, M. G. Ippolito and E. Riva Sanseverino, "Dynamic Model of the European Power System for Wide-Area Monitoring and Control Applications," *Electricity*, vol. 7, no. 2, art. 28, 2026, [doi:10.3390/electricity7020028](https://doi.org/10.3390/electricity7020028), and its data and MATLAB/Simulink implementation are published on Zenodo, [record 18721887](https://zenodo.org/records/18721887), under CC BY. This repository is a conversion of that model to RAMSES format; please cite the paper and the Zenodo record when using it.
+
 **A dynamic model of the Continental European power system built for wide-area monitoring and control studies, converted to RAMSES format.**
 
 This repository holds the WAMCES model of Musca, Ippolito and Riva Sanseverino (University of Palermo), prepared for use with the [STEPSS](https://stepss.sps-lab.org/) power system simulation platform (RAMSES dynamic simulator, HELIOS power flow and the stepss Python API). The model is published as MATLAB/Simulink; the RAMSES data files here are converted from it, and the original archives are kept unmodified in `original-data/` as the provenance record.
