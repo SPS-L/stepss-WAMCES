@@ -57,7 +57,7 @@ Validation, all three currently passing:
 
 ## The disturbance case, and how it compares
 
-`wamces_dist.dat` plus `wamces_step.dst` reproduce the paper's power-imbalance scenario (`wamces_cmd_step_sm.txt` runs it on `wamces_dyn_sm.dat`, the machines-only copy of `wamces_dyn.dat`; `wamces_cmd_step.txt` on the full plant): 1000 MW switched in at `ES2178`, the bus the upstream script perturbs. Every `.dst` here applies its disturbance at **t = 1 s**, never at t = 0, so a run always has a second of initialisation to prove it is flat before anything happens. The MATLAB reference steps at t = 0, so its time axis is shifted by 1 s when comparing.
+`wamces_dist.dat` plus `wamces_step.dst` reproduce the paper's power-imbalance scenario (`wamces_step_sm.cfg` runs it on `wamces_dyn_sm.dat`, the machines-only copy of `wamces_dyn.dat`; `wamces_step.cfg` on the full plant): 1000 MW switched in at `ES2178`, the bus the upstream script perturbs. Every `.dst` here applies its disturbance at **t = 1 s**, never at t = 0, so a run always has a second of initialisation to prove it is flat before anything happens. The MATLAB reference steps at t = 0, so its time axis is shifted by 1 s when comparing.
 
 The load is a pure constant impedance (`alpha = beta = 2`), which is what the MATLAB model adds: a shunt conductance on the diagonal of the augmented admittance matrix. It starts at zero power and is stepped by `CHGPRM`, so the base operating point is untouched.
 
@@ -66,7 +66,7 @@ The load is a pure constant impedance (`alpha = beta = 2`), which is what the MA
 Two spellings to get right, both of which cost a run:
 
 - The unit token in `CHGPRM` is **`MVAR`**, uppercase. The documentation writes `MVAr`, which the parser rejects with `Error in disturbance description` and no hint as to which field is wrong. `MW` is spelled as documented.
-- A command file needs **trailing blank lines** after `disc.trace`, or `setup_runtime_observables` stops with `Error reading name of display output`.
+- A hand-written RAMSES command file needs **trailing blank lines** after `disc.trace`, or `setup_runtime_observables` stops with `Error reading name of display output`. The repository ships `.cfg` scenario files instead, and `stepss.cfg` writes its own command file, so this only bites when running the engine by hand.
 
 ### Agreement with the source model
 
@@ -189,7 +189,6 @@ On 3.82 the assembled plant runs 20 s in about 6.7 s over 1002 steps, and the fl
 
 Observing the injectors needs `INJEC *` in the observables file alongside `SYNC *`, which makes the trajectory about 270 MB for a 20 s run.
 
-The command file needs **trailing blank lines** after `disc.trace`, or the run stops with `Error reading name of display output` from `setup_runtime_observables`.
 
 ### The small bench
 
