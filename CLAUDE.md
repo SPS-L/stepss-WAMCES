@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Upstream material for the WAMCES model: a phasor-domain dynamic model of the Continental European power system built for wide-area monitoring and control studies, by Musca, Ippolito and Riva Sanseverino at the University of Palermo. The paper is `doc/electricity-07-00028.pdf` (Electricity 2026, 7, 28, MDPI, CC BY); the data it points to is Zenodo record 18721887, mirrored here in `original-data/`.
 
-The static network, the 618 synchronous machines with their controllers, the 300 grid-forming and 500 grid-following converters and the 1573 PMUs are all converted, and `README.md` gives the user-facing view. There is no notebook yet: the full case needs RAMSES 3.82 and a licence, and the parent rule is that a case's notebook is committed with its outputs. This is its own repository, `SPS-L/stepss-WAMCES`, used as a submodule of `stepss-test-systems`. The parent `CLAUDE.md` governs everything about how a test system here is laid out, run and licensed; this file covers only what is specific to this dataset.
+The static network, the 618 synchronous machines with their controllers, the 300 grid-forming and 500 grid-following converters and the 1573 PMUs are all converted, and `README.md` gives the user-facing view. `PaperReplication.ipynb` reproduces the paper's simulations and is committed with its outputs; it needs stepss 3.83 and a licence. This is its own repository, `SPS-L/stepss-WAMCES`, used as a submodule of `stepss-test-systems`. The parent `CLAUDE.md` governs everything about how a test system here is laid out, run and licensed; this file covers only what is specific to this dataset.
 
 ## What is in the two archives
 
@@ -82,7 +82,9 @@ Machines only, against `f_all` from the MATLAB run (`model/wamces_reference.mat`
 
 The inter-area mode agrees to 0.2 mHz and both match the roughly 0.13 Hz the paper quotes for the West to East mode, which is the headline result being replicated. The 5 mHz offset in the mean is against a 44 mHz total excursion and has at least three candidate causes that have not been separated: the reactive part of the step, which the reference does not have; the converters, absent from this run and present in the reference; and the single slack against the reference's five.
 
-### The converters chatter under disturbance, and the full case does not finish
+### The converters chattered under disturbance (fixed in RAMSES 3.83)
+
+**Fixed in 3.83**: the full plant now runs the 51 s step in about 40 s. What follows is kept as the diagnosis record, and as the reason a full-plant disturbance must not be run on 3.82.
 
 The complete plant initialises and sits still, but on a disturbance the 500 `GFOL` converters chatter on their `iq_1` limiter: over a million `REP UDIM GFOL 3` toggles, a `disc.trace` growing past 150 MB, and a 51 s run that does not finish. The machines-only case is unaffected and runs in 19 s.
 
@@ -107,6 +109,18 @@ Three things established by experiment, each of which rules out a tempting fix:
 - **The model's own bypass is broken.** `Trlim < 0.001` sets `Imax = huge(0.d0)`, which overflows in `Imax**2`, so `Idmax_stat` is `Inf` and the run exits 255 after **0 time steps**.
 
 A nonzero reactive dispatch does stop it (0.5 Mvar puts `Idmax_stat` 1.25e-4 below the bound, just outside tolerance, and takes the window from 337 steps in 28.4 s to 74 in 1.09 s), but it moves the operating point off the published one, so it is a diagnostic rather than a remedy. The fix belongs in the model, as a deadband on the switch using the `blocktol1` it already imports. Until then the disturbance case is machines-only, which is also what the paper's own validation in section 4.2 uses.
+
+## The replication notebook
+
+`PaperReplication.ipynb` is the end-to-end check, about half an hour to execute. What it depends on, none of it visible from the paper alone:
+
+- **A run paused and resumed up to its STOP time is not finalised until `endSim()`.** Without it the trajectory stays a few hundred bytes and the extractor fails with `FortranEOFError`. The notebook's `finish()` calls it after every stepped run and after `getJac`; on a run that ended by itself it raises and is ignored.
+- **`E_osc` (paper eq. 66) is over the 618 machine frequencies in Hz**, time step 10 ms. That reading reproduces the paper's 0.36 from the MATLAB run (0.358), which is why it was chosen; per unit, or over the PMUs, it does not.
+- **`Kw` is not published** (zero in `data_gfm.csv`, not stated in the paper). A sweep put the paper's 80 % reduction of `E_osc` at about `Kw = 80` pu on the converter rating; the notebook shows 10, 40 and 80.
+- **The forcing of Figure 13 is on grid-forming `Po`**, which RAMSES holds in pu on the converter's `Snom`, the base of the paper's `K_ampl`. The grid-following converters are 10 MVA and too small to reproduce the figure. The three sources and the envelope are chosen, not published.
+- **The modal analysis is a sparse shift-invert on `getJac`**, local to the notebook (stepss-python-ui issue #7 proposes making it a function). It needs `$OMEGA_REF SYN` and runs the IBR configuration without the PMUs. `getJac` writes 170-280 MB of `py_*.dat` into the working directory, which is why the notebook `chdir`s into `runs/`.
+- **The areas are the notebook's choice** (West ES, PT, FR; East the Balkans, RO, BG, GR, HU). The East-West mode shape checks it: Iberia against the Balkans and Greece, with France near the node.
+- **The MATLAB comparison reads `reference/matlab_fig15_area_means.csv`**, which `tools/export_matlab_reference.py` reduces from `model/wamces_reference.mat` (git-ignored, 57 MB, written by `model/run_check.m` with stage C).
 
 ## Device model mapping
 

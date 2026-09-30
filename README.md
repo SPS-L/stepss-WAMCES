@@ -27,8 +27,11 @@ What distinguishes it from other European models is that the measurement and con
 | `tools/bench_machine.py` | Two-bus bench carrying the same machine, exciter and governor records, for checking the device mapping without the full network or a licence |
 | `original-data/` | The published model as distributed: the MATLAB/Simulink archive and the CSV export of its nine data tables |
 | `doc/` | `electricity-07-00028.pdf`, the paper describing the model |
+| `PaperReplication.ipynb` | Reproduces every simulation of the paper: the validation (Figure 12), the modal analysis (Tables 2 to 4), forced oscillations (Figure 13), the Iberian split (Figure 14) and the power imbalance without and with wide-area damping control (Figures 15 and 16). Committed with its outputs |
+| `reference/matlab_fig15_area_means.csv` | The upstream MATLAB run reduced to area-mean frequencies and its oscillation energy, for the Figure 15 comparison |
+| `tools/export_matlab_reference.py` | Regenerates that file from `model/wamces_reference.mat`, which a run of the MATLAB model writes |
 
-`license.dat`, the extracted `model/` and `original-data/csv/` folders, and all simulation outputs are git-ignored.
+`license.dat`, the extracted `model/` and `original-data/csv/` folders, the notebook's `runs/` folder and all simulation outputs are git-ignored.
 
 ## Quick Start
 
@@ -84,17 +87,17 @@ The conversion is validated against the source model in four independent ways:
 - feeding `wamces_lfres.dat` back as input converges in one Newton iteration, the round-trip property that says the data and its voltages belong together;
 - the 39 machines the upstream script silently up-rates are reproduced with the same indices and the same loading figures.
 
-**The power-imbalance case runs on the machines alone.** `wamces_cmd_step_sm.txt` steps 1000 MW at the Spanish bus the upstream script perturbs and runs 51 s in about 19 s. Against the MATLAB reference it reproduces the West to East inter-area mode at 0.14 Hz to within 0.2 mHz, the roughly 0.13 Hz mode the paper reports. With the full plant (`wamces_cmd_step.txt`) the case initialises and sits still, but on the step the grid-following converters chatter on a limiter and the run does not finish; this is a solver-robustness defect tracked as [stepss-ramses issue #17](https://github.com/SPS-L/stepss-ramses/issues/17), and `CLAUDE.md` records the diagnosis.
+**Every disturbance case runs, with the full plant.** Since stepss 3.83 the grid-following converters no longer stall on their current limiter under a disturbance (it was a solver-robustness defect in RAMSES, fixed in 3.83), and the 1000 MW step runs 51 s in about 40 s with all 800 converters and 1573 PMUs in service; on the machines alone it takes about 20 s. `PaperReplication.ipynb` reproduces every simulation of the paper on this basis. Against the upstream MATLAB run of the same case, the oscillation energy and the West to East inter-area mode agree closely; the notebook records where and why the replication departs.
 
-**Requires RAMSES 3.82 or newer.** Earlier engines stop while reading the network and report the 1000-bus limit whatever licence is present, and they cannot hold this system's Jacobian.
+**Requires RAMSES 3.82 or newer, and 3.83 for any disturbance with the converters in service.** Engines before 3.82 stop while reading the network and report the 1000-bus limit whatever licence is present, and they cannot hold this system's Jacobian.
 
-Verified against **stepss 3.82** (RAMSES 3.82, HELIOS 1.4.1) on Linux. The upstream MATLAB model was re-run under R2026a Update 5 to confirm it still loads, compiles and simulates.
+Verified against **stepss 3.83** (RAMSES 3.83, HELIOS 1.4.1) on Linux. The upstream MATLAB model was re-run under R2026a Update 5 to confirm it still loads, compiles and simulates.
 
 Every device uses a registered model from the standard library, so nothing here needs a custom engine build. Two approximations remain, both in the converters and both recorded in `CLAUDE.md`: the grid-following converter's PI phase-locked loop is reduced to the single first-order response time the library model exposes, and neither converter model carries the voltage-loop gains of the original. The grid-forming converter's swing dynamics transfer exactly.
 
-### Not yet converted
+### The wide-area control layer
 
-The wide-area control layer is not part of these data files. The model as published runs open-loop, because the upstream script zeroes the control gain, so what is here reproduces that base case. The communication latencies and the central unit belong to the control layer and are intended to be driven from the Python interface, reading the PMU frequency observables and modulating the grid-forming converters, which is where the original applies them.
+The wide-area control is not part of the data files. The model as published runs open-loop, because the upstream script zeroes the control gain, and that is the base case the files reproduce. The control layer, the PMU average, the communication latencies and the actuation through the grid-forming converters, runs from Python in `PaperReplication.ipynb`, pausing the simulation every 20 ms. The paper does not publish the gain it used, so the notebook sweeps it.
 
 ## Documentation
 

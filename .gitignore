@@ -15,6 +15,9 @@
 # RAMSES full-version licence record: personal, never commit
 license.dat
 
+# Run products of PaperReplication.ipynb (traces, generated .dst files, Jacobian dumps)
+/runs/
+
 # Simulation outputs
 *.trj
 *.cur
