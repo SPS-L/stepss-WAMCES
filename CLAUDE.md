@@ -88,7 +88,7 @@ The inter-area mode agrees to 0.2 mHz and both match the roughly 0.13 Hz the pap
 
 The complete plant initialises and sits still, but on a disturbance the 500 `GFOL` converters chatter on their `iq_1` limiter: over a million `REP UDIM GFOL 3` toggles, a `disc.trace` growing past 150 MB, and a 51 s run that does not finish. The machines-only case is unaffected and runs in 19 s.
 
-This is [issue #17](https://github.com/SPS-L/stepss-ramses/issues/17). It is a solver-robustness defect, not a modelling error, and it is worth being precise about that because the first two diagnoses in this folder's history were wrong.
+It was a solver-robustness defect in the RAMSES engine, fixed in 3.83, not a modelling error, and it is worth being precise about that because the first two diagnoses in this folder's history were wrong.
 
 `z(3)` is the switch on the `Idmax` block, which enforces the thermal limit by giving the q-axis priority and handing the d-axis the remaining headroom:
 
@@ -118,7 +118,7 @@ A nonzero reactive dispatch does stop it (0.5 Mvar puts `Idmax_stat` 1.25e-4 bel
 - **`E_osc` (paper eq. 66) is over the 618 machine frequencies in Hz**, time step 10 ms. That reading reproduces the paper's 0.36 from the MATLAB run (0.358), which is why it was chosen; per unit, or over the PMUs, it does not.
 - **`Kw` is not published** (zero in `data_gfm.csv`, not stated in the paper). A sweep put the paper's 80 % reduction of `E_osc` at about `Kw = 80` pu on the converter rating; the notebook shows 10, 40 and 80.
 - **The forcing of Figure 13 is on grid-forming `Po`**, which RAMSES holds in pu on the converter's `Snom`, the base of the paper's `K_ampl`. The grid-following converters are 10 MVA and too small to reproduce the figure. The three sources and the envelope are chosen, not published.
-- **The modal analysis is a sparse shift-invert on `getJac`**, local to the notebook (stepss-python-ui issue #7 proposes making it a function). It needs `$OMEGA_REF SYN` and runs the IBR configuration without the PMUs. `getJac` writes 170-280 MB of `py_*.dat` into the working directory, which is why the notebook `chdir`s into `runs/`.
+- **The modal analysis is a sparse shift-invert on `getJac`**, local to the notebook (a reusable version for the stepss package has been proposed). It needs `$OMEGA_REF SYN` and runs the IBR configuration without the PMUs. `getJac` writes 170-280 MB of `py_*.dat` into the working directory, which is why the notebook `chdir`s into `runs/`.
 - **The areas are the notebook's choice** (West ES, PT, FR; East the Balkans, RO, BG, GR, HU). The East-West mode shape checks it: Iberia against the Balkans and Greece, with France near the node.
 - **The MATLAB comparison reads `reference/matlab_fig15_area_means.csv`**, which `tools/export_matlab_reference.py` reduces from `model/wamces_reference.mat` (git-ignored, 57 MB, written by `model/run_check.m` with stage C).
 
@@ -176,7 +176,7 @@ Three choices that are not forced by the data:
 
 At 3809 buses this case needs the full engine. Engines before 3.82 stop in the network reader with `You do not have license for more than 1000 buses`; see the v3.82 release notes for why that happened even with a correct `license.dat`. On an older engine the case cannot run at all. HELIOS has no bus limit, so the power flow half always runs.
 
-It also needs `mxnzel` at 6e6, raised in the same release. The injectors dominate the integrated Jacobian, each costing roughly the square of its own state count, so the full plant needs 4.52e6 against the old 3e6 ceiling and stopped in `struc_net_jacob`. Counter-intuitively the 1573 PMUs are the cheapest part at 9 states each; the 500 `GFOL` at 52 states each cost ten times as much. Trimming the instrumentation is not a way round it. `mxnzel` is a compile-time `parameter`, so **a stale build will not pick up a change to it**: the value must be raised and then rebuilt from clean, or the same stop reappears with a figure that is already below the new ceiling. Sizing those arrays dynamically is [issue #16](https://github.com/SPS-L/stepss-ramses/issues/16).
+It also needs `mxnzel` at 6e6, raised in the same release. The injectors dominate the integrated Jacobian, each costing roughly the square of its own state count, so the full plant needs 4.52e6 against the old 3e6 ceiling and stopped in `struc_net_jacob`. Counter-intuitively the 1573 PMUs are the cheapest part at 9 states each; the 500 `GFOL` at 52 states each cost ten times as much. Trimming the instrumentation is not a way round it. `mxnzel` is a compile-time `parameter`, so **a stale build will not pick up a change to it**: the value must be raised and then rebuilt from clean, or the same stop reappears with a figure that is already below the new ceiling. Sizing those arrays from the actual counts, instead of from a compile-time ceiling, is an open item for the engine.
 
 On 3.82 the assembled plant runs 20 s in about 6.7 s over 1002 steps, and the flat run is flat across every device:
 
