@@ -25,7 +25,7 @@ What distinguishes it from other European models is that the measurement and con
 | `wamces_step.dst` | The paper's 1000 MW power-imbalance scenario, stepping that load at t = 1 s and running to 51 s |
 | `wamces_dyn_sm.dat` | `wamces_dyn.dat` with every `INJEC` record removed: the 618 machines and their controllers only, the configuration of the paper's validation case (Figure 12) |
 | `wamces_flat.cfg`, `wamces_step.cfg`, `wamces_step_sm.cfg` | STEPSS scenario files for the flat run, and for the 1000 MW step with the full plant and with the machines only. Open one in the STEPSS GUI through **File > Load configuration**; paths are relative, and each lists `license.dat` as its last data file |
-| `tools/wamces_to_ramses.py` | Regenerates every `.dat` file above from the published tables. Each conversion decision is documented in its docstrings |
+| `tools/wamces_to_ramses.py` | Regenerates `wamces_lf.dat`, `wamces_lfres.dat` and `wamces_dyn.dat` from the published tables; see *Regenerating the data files* for the other three. Each conversion decision is documented in its docstrings |
 | `tools/bench_machine.py` | Two-bus bench carrying the same machine, exciter and governor records, for checking the device mapping without the full network or a licence |
 | `original-data/` | The published model as distributed: the MATLAB/Simulink archive and the CSV export of its nine data tables |
 | `doc/` | `electricity-07-00028.pdf`, the paper describing the model |
